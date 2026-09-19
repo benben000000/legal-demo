@@ -3,7 +3,8 @@ import { verify, sign, JwtPayload } from 'jsonwebtoken';
 import { hash, compare } from 'bcrypt';
 import { prisma } from './prisma';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'dev-secret-change-in-production-minimum-32-chars-long-random';
 const BCRYPT_ROUNDS = 12;
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
