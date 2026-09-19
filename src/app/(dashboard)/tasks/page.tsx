@@ -5,37 +5,17 @@ import { TasksClient } from './tasks-client';
 export default async function TasksPage() {
   const user = await requireAuth();
 
-  const where: any = {};
-  if (user.role !== 'LEAD_ATTORNEY') {
-    where.OR = [
-      { assigneeId: user.id },
-      { assignedById: user.id },
-      { matter: { createdById: user.id } },
-      { matter: { members: { some: { userId: user.id } } } },
-    ];
-  }
-
-  const mattersWhere =
-    user.role === 'LEAD_ATTORNEY'
-      ? {}
-      : {
-          OR: [
-            { createdById: user.id },
-            { members: { some: { userId: user.id } } },
-          ],
-        };
-
+  // Fetch all active firm tasks so the team operates as a synchronized cogwheel
   const [tasks, matters, allUsers] = await Promise.all([
     prisma.task.findMany({
-      where,
       include: {
         matter: { select: { caseTitle: true } },
-        assignee: { select: { firstName: true, lastName: true } },
+        assignee: { select: { firstName: true, lastName: true, role: true } },
       },
       orderBy: { dueDate: 'asc' },
     }),
     prisma.matter.findMany({
-      where: mattersWhere,
+      where: { status: { not: 'ARCHIVED' } },
       select: { id: true, caseTitle: true },
       orderBy: { caseTitle: 'asc' },
     }),
@@ -54,8 +34,15 @@ export default async function TasksPage() {
     priority: t.priority,
     dueDate: t.dueDate ? t.dueDate.toISOString() : null,
     matterId: t.matterId,
+    assigneeId: t.assigneeId,
     matter: { caseTitle: t.matter.caseTitle },
-    assignee: t.assignee ? { firstName: t.assignee.firstName, lastName: t.assignee.lastName } : null,
+    assignee: t.assignee
+      ? {
+          firstName: t.assignee.firstName,
+          lastName: t.assignee.lastName,
+          role: t.assignee.role,
+        }
+      : null,
   }));
 
   const userOptions = allUsers.map((u) => ({
@@ -69,6 +56,8 @@ export default async function TasksPage() {
       tasks={serializedTasks}
       matters={matters}
       users={userOptions}
+      currentUserId={user.id}
+      currentUserRole={user.role}
     />
   );
 }

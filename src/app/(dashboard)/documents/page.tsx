@@ -6,14 +6,6 @@ export default async function DocumentsPage() {
   const user = await requireAuth();
 
   const where: any = { isDeleted: false };
-  if (user.role !== 'LEAD_ATTORNEY') {
-    where.matter = {
-      OR: [
-        { createdById: user.id },
-        { members: { some: { userId: user.id } } },
-      ],
-    };
-  }
 
   const mattersWhere =
     user.role === 'LEAD_ATTORNEY'

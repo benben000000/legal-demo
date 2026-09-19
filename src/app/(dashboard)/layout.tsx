@@ -11,14 +11,14 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   // Ensure the user is authenticated to view any dashboard route
-  await requireAuth();
+  const user = await requireAuth();
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <NavigationProgress />
-      <Sidebar />
+      <Sidebar userRole={user.role} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
+        <Header user={user} />
         <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl animate-page-enter">
             {children}

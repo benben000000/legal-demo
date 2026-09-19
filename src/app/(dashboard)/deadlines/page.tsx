@@ -5,14 +5,7 @@ import { DeadlinesClient } from './deadlines-client';
 export default async function DeadlinesPage() {
   const user = await requireAuth();
 
-  const where = user.role === 'LEAD_ATTORNEY' ? {} : {
-    matter: {
-      OR: [
-        { createdById: user.id },
-        { members: { some: { userId: user.id } } },
-      ],
-    },
-  };
+  const where = {};
 
   const mattersWhere =
     user.role === 'LEAD_ATTORNEY'

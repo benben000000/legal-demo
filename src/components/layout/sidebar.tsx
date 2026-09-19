@@ -3,20 +3,35 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Matters', href: '/matters' },
-  { name: 'Tasks', href: '/tasks' },
-  { name: 'Deadlines', href: '/deadlines' },
-  { name: 'Documents', href: '/documents' },
-  { name: 'Billing', href: '/billing' },
-  { name: 'Team', href: '/team' },
-  { name: 'Audit Logs', href: '/audit-logs' },
-];
+interface SidebarProps {
+  userRole?: 'LEAD_ATTORNEY' | 'ASSOCIATE' | 'STAFF';
+}
 
-export function Sidebar() {
+export function Sidebar({ userRole = 'LEAD_ATTORNEY' }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Role-based navigation filtering:
+  // - Super Admin / Main Attorney (LEAD_ATTORNEY): Sees all 8 modules (including Team & Audit Logs)
+  // - Associate Attorney (ASSOCIATE): Sees practice tools + Billing (Team & Audit Logs are removed)
+  // - Legal Staff (STAFF): Sees core practice tools (Billing, Team & Audit Logs are removed)
+  const isSuperAdmin = userRole === 'LEAD_ATTORNEY';
+  const isAttorney = userRole === 'LEAD_ATTORNEY' || userRole === 'ASSOCIATE';
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Matters', href: '/matters' },
+    { name: 'Tasks', href: '/tasks' },
+    { name: 'Deadlines', href: '/deadlines' },
+    { name: 'Documents', href: '/documents' },
+    ...(isAttorney ? [{ name: 'Billing', href: '/billing' }] : []),
+    ...(isSuperAdmin
+      ? [
+          { name: 'Team', href: '/team' },
+          { name: 'Audit Logs', href: '/audit-logs' },
+        ]
+      : []),
+  ];
 
   return (
     <aside className="flex flex-col w-64 bg-gray-950 border-r border-gray-900 min-h-screen select-none shrink-0">
