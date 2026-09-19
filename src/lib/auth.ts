@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { verify, sign, JwtPayload } from 'jsonwebtoken';
 import { hash, compare } from 'bcrypt';
+import { cache } from 'react';
 import { prisma } from './prisma';
 
 const JWT_SECRET =
@@ -63,7 +64,7 @@ export function verifyToken(token: string): JwtTokenPayload | null {
   }
 }
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('session')?.value;
@@ -103,7 +104,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireAuth(): Promise<SessionUser> {
   const user = await getSessionUser();

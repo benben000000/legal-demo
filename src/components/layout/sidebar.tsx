@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -16,12 +16,18 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
-    <aside className="flex flex-col w-64 bg-gray-950 border-r border-gray-900 min-h-screen select-none">
+    <aside className="flex flex-col w-64 bg-gray-950 border-r border-gray-900 min-h-screen select-none shrink-0">
       {/* Brand Header */}
       <div className="flex h-16 shrink-0 items-center px-6 border-b border-gray-900/90 bg-gray-950">
-        <Link href="/dashboard" className="flex items-center space-x-3 group">
+        <Link
+          href="/dashboard"
+          prefetch={true}
+          onMouseEnter={() => router.prefetch('/dashboard')}
+          className="flex items-center space-x-3 group"
+        >
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:bg-blue-500 transition-colors">
             LD
           </div>
@@ -44,6 +50,8 @@ export function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
+                prefetch={true}
+                onMouseEnter={() => router.prefetch(item.href)}
                 className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 ${
                   isActive
                     ? 'bg-gray-800 text-white shadow-xs'
@@ -52,7 +60,7 @@ export function Sidebar() {
               >
                 <span className="flex-1">{item.name}</span>
                 {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                 )}
               </Link>
             );

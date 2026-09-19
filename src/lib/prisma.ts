@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 const DEFAULT_DATABASE_URL =
-  'postgresql://neondb_owner:npg_umkXLo78rYGq@ep-lively-snow-b33me95m.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+  'postgresql://neondb_owner:npg_umkXLo78rYGq@ep-lively-snow-b33me95m-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&connect_timeout=10';
 
 // Ensure DATABASE_URL is always populated so zero setup is required on new Vercel deployments
 if (!process.env.DATABASE_URL) {

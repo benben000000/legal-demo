@@ -14,24 +14,30 @@ export default async function DeadlinesPage() {
     },
   };
 
-  const deadlines = await prisma.deadline.findMany({
-    where,
-    include: {
-      matter: { select: { caseTitle: true } },
-    },
-    orderBy: { dueDate: 'asc' },
-  });
+  const mattersWhere =
+    user.role === 'LEAD_ATTORNEY'
+      ? {}
+      : {
+          OR: [
+            { createdById: user.id },
+            { members: { some: { userId: user.id } } },
+          ],
+        };
 
-  const matters = await prisma.matter.findMany({
-    where: user.role === 'LEAD_ATTORNEY' ? {} : {
-      OR: [
-        { createdById: user.id },
-        { members: { some: { userId: user.id } } },
-      ],
-    },
-    select: { id: true, caseTitle: true },
-    orderBy: { caseTitle: 'asc' },
-  });
+  const [deadlines, matters] = await Promise.all([
+    prisma.deadline.findMany({
+      where,
+      include: {
+        matter: { select: { caseTitle: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+    }),
+    prisma.matter.findMany({
+      where: mattersWhere,
+      select: { id: true, caseTitle: true },
+      orderBy: { caseTitle: 'asc' },
+    }),
+  ]);
 
   const serializedDeadlines = deadlines.map((d) => ({
     id: d.id,

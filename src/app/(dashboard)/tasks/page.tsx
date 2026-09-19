@@ -15,31 +15,36 @@ export default async function TasksPage() {
     ];
   }
 
-  const tasks = await prisma.task.findMany({
-    where,
-    include: {
-      matter: { select: { caseTitle: true } },
-      assignee: { select: { firstName: true, lastName: true } },
-    },
-    orderBy: { dueDate: 'asc' },
-  });
+  const mattersWhere =
+    user.role === 'LEAD_ATTORNEY'
+      ? {}
+      : {
+          OR: [
+            { createdById: user.id },
+            { members: { some: { userId: user.id } } },
+          ],
+        };
 
-  const matters = await prisma.matter.findMany({
-    where: user.role === 'LEAD_ATTORNEY' ? {} : {
-      OR: [
-        { createdById: user.id },
-        { members: { some: { userId: user.id } } },
-      ],
-    },
-    select: { id: true, caseTitle: true },
-    orderBy: { caseTitle: 'asc' },
-  });
-
-  const allUsers = await prisma.user.findMany({
-    where: { isActive: true },
-    select: { id: true, firstName: true, lastName: true, role: true },
-    orderBy: { firstName: 'asc' },
-  });
+  const [tasks, matters, allUsers] = await Promise.all([
+    prisma.task.findMany({
+      where,
+      include: {
+        matter: { select: { caseTitle: true } },
+        assignee: { select: { firstName: true, lastName: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+    }),
+    prisma.matter.findMany({
+      where: mattersWhere,
+      select: { id: true, caseTitle: true },
+      orderBy: { caseTitle: 'asc' },
+    }),
+    prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true, firstName: true, lastName: true, role: true },
+      orderBy: { firstName: 'asc' },
+    }),
+  ]);
 
   const serializedTasks = tasks.map((t) => ({
     id: t.id,

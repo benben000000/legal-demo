@@ -15,24 +15,30 @@ export default async function DocumentsPage() {
     };
   }
 
-  const documents = await prisma.document.findMany({
-    where,
-    include: {
-      matter: { select: { caseTitle: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  const mattersWhere =
+    user.role === 'LEAD_ATTORNEY'
+      ? {}
+      : {
+          OR: [
+            { createdById: user.id },
+            { members: { some: { userId: user.id } } },
+          ],
+        };
 
-  const matters = await prisma.matter.findMany({
-    where: user.role === 'LEAD_ATTORNEY' ? {} : {
-      OR: [
-        { createdById: user.id },
-        { members: { some: { userId: user.id } } },
-      ],
-    },
-    select: { id: true, caseTitle: true },
-    orderBy: { caseTitle: 'asc' },
-  });
+  const [documents, matters] = await Promise.all([
+    prisma.document.findMany({
+      where,
+      include: {
+        matter: { select: { caseTitle: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.matter.findMany({
+      where: mattersWhere,
+      select: { id: true, caseTitle: true },
+      orderBy: { caseTitle: 'asc' },
+    }),
+  ]);
 
   const serializedDocs = documents.map((d) => ({
     id: d.id,
